@@ -1,0 +1,1 @@
+{'employee_name': None, 'employer_identification_number': <re.Match object; span=(1676, 1713), match='Employer identification number (EIN)\n'>, 'wages_tips_other_compensation': <re.Match object; span=(1718, 1750), match='Wages, tips, other compensation\n'>, 'federal_income_tax_withheld': <re.Match object; span=(1755, 1783), match='Federal income tax withheld\n'>}
