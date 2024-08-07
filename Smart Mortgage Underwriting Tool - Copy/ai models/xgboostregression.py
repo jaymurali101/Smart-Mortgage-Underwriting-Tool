@@ -1,68 +1,50 @@
-#this is used for the final loan amount and we are using xgboost specifically because it incorporates
-#numerical values and categorical values 
-
-import pandas as pd 
-    
-import numpy as np
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+import pandas as pd
 
-# Example dataset
-data = {
-    'section_header': ['Income', 'Assets', 'Liabilities', 'Property', 'Income', 'Assets'],
-    'value': [60000, 150000, 50000, 300000, 55000, 140000],
-    'other_feature': [1, 2, 3, 4, 1, 2],
-    'mortgage_amount': [200000, 300000, 150000, 400000, 210000, 290000]  # target variable
-}
-df = pd.DataFrame(data)
+from sklearn.model_selection import train_test_split
 
-# One-hot encode categorical features - turning categorical features in numerical values for machinee
-encoded_df = pd.get_dummies(df, columns=['section_header'], drop_first=True)
+# Load the synthetic data
+df = pd.read_csv("synthetic_mortgage_data.csv")
 
-# Define features and target
-X = encoded_df.drop('mortgage_amount', axis=1)
-y = encoded_df['mortgage_amount']
+# Define features and target variable
+X = df.drop(columns=['Mortgage_Amount'])
+y = df['Mortgage_Amount']
 
-# Split the data into training, validation, and test sets 
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
-X_valid, X_test, y_valid, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+# Split the data
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.4, random_state=42)  # 60% train, 40% temp
+X_valid, X_test, y_valid, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)  # 50% of temp for valid and test
 
-# Initialize the XGBoost Regressor 
-model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, learning_rate=0.1, max_depth=5)
-
-# Train the model
-model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], early_stopping_rounds=10, verbose=True)
-
-# Predict on the test set 
-y_pred = model.predict(X_test)
-
-# Calculate Mean Squared Error
-mse = mean_squared_error(y_test, y_pred)
-print(f"Mean Squared Error: {mse}")
-
-# Additional evaluation metrics can be added here
-
-# Example new data
-new_data = {
-    'other_feature': [2],
-    'section_header_Assets': [1],
-    'section_header_Income': [0],
-    'section_header_Liabilities': [0],
-    'section_header_Property': [0]
- 
-}
-
-variable_color = rgb[2]
-faker = Faker()
-db = ConnectionAbortedError
-db.add_note('section_header_Property')
+# Save to CSV
+X_train.to_csv("X_train.csv", index=False)
+X_valid.to_csv("X_valid.csv", index=False)
+X_test.to_csv("X_test.csv", index=False)
+y_train.to_csv("y_train.csv", index=False)
+y_valid.to_csv("y_valid.csv", index=False)
+y_test.to_csv("y_test.csv", index=False)
 
 
-# Predict the mortgage amount
-predicted_mortgage_amount = model.predict(new_df)
-print(f"Predicted Mortgage Amount: {predicted_mortgage_amount[0]}") 
+# Load training and validation data
+X_train = pd.read_csv("X_train.csv")
+y_train = pd.read_csv("y_train.csv")
+X_valid = pd.read_csv("X_valid.csv")
+y_valid = pd.read_csv("y_valid.csv")
 
+# Initialize and train the XGBoost model
+model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=1000)
+model.fit(X_train, y_train)
 
+# Validate the model
+y_pred = model.predict(X_valid)
+mse = mean_squared_error(y_valid, y_pred)
+print(f"Validation Mean Squared Error: {mse}")
 
+# Test the model
+X_test = pd.read_csv("X_test.csv")
+y_test = pd.read_csv("y_test.csv")
+y_test_pred = model.predict(X_test)
+test_mse = mean_squared_error(y_test, y_test_pred)
+print(f"Test Mean Squared Error: {test_mse}")
+print(y_test_pred)
 
